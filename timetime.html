@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>TIME</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#020617;
+  --clock:#38bdf8;
+  --glow:2s;
+  --radius:20px;
+}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:system-ui,sans-serif;
+  transition:.3s;
+}
+.clock-box{
+  text-align:center;
+  padding:28px 48px;
+  border-radius:var(--radius);
+  background:rgba(15,23,42,.85);
+  box-shadow:0 0 25px rgba(56,189,248,.35);
+  animation:glow var(--glow) ease-in-out infinite alternate;
+  transition:.3s;
+}
+@keyframes glow{
+  from{box-shadow:0 0 15px var(--clock);}
+  to{box-shadow:0 0 35px var(--clock);}
+}
+.digital{
+  font-size:64px;
+  font-weight:600;
+  color:var(--clock);
+  letter-spacing:4px;
+  transition:.3s;
+}
+.date{margin-top:10px;color:#cbd5f5;font-size:18px;transition:.3s;}
+.analog{width:220px;height:220px;border:6px solid var(--clock);border-radius:50%;position:relative;margin:0 auto;transition:.3s;background:#020617;}
+.hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom;background:var(--clock);transition:.3s;border-radius:3px;}
+.hour{width:6px;height:55px;}
+.min{width:4px;height:75px;}
+.sec{width:2px;height:90px;background:red;}
+.settings-btn{position:fixed;top:15px;right:15px;background:#0f172a;color:white;border:none;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:16px;opacity:0.6;transition:.3s;}
+.settings-btn:hover{opacity:1;}
+.settings{position:fixed;top:0;right:-220px;width:200px;height:100vh;background:rgba(2,6,23,0.95);padding:12px;color:white;transition:.3s;overflow-y:auto;border-left:1px solid #38bdf8;}
+.settings.open{right:0;}
+.settings h2{margin-bottom:10px;font-size:14px;color:#38bdf8;}
+.settings label{display:block;margin-top:10px;font-size:12px;color:#cbd5f5;}
+.settings input,.settings select,button{width:100%;margin-top:5px;font-size:12px;}
+.close-btn{background:#ef4444;border:none;color:white;padding:4px;border-radius:6px;cursor:pointer;margin-bottom:8px;font-size:11px;}
+.telegram{margin-top:15px;text-align:center;font-size:11px;}
+.telegram a{color:#38bdf8;text-decoration:none;}
+@media(max-width:600px){.digital{font-size:42px}.clock-box{padding:20px 32px}}
+
+/* ===== 10 цифровых стилей ===== */
+.digital.style1{font-family:'Segoe UI',sans-serif;color:#38bdf8;text-shadow:0 0 5px #38bdf8;}
+.digital.style2{font-family:'Arial Black',sans-serif;color:#facc15;text-shadow:2px 2px #000;}
+.digital.style3{font-family:'Courier New',monospace;color:#10b981;text-shadow:0 0 8px #10b981;}
+.digital.style4{font-family:'Tahoma',sans-serif;color:#f43f5e;text-shadow:0 0 10px #f43f5e;}
+.digital.style5{font-family:'Verdana',sans-serif;color:#8b5cf6;text-shadow:0 0 6px #8b5cf6;}
+.digital.style6{font-family:'Impact',sans-serif;color:#f97316;text-shadow:1px 1px #000;}
+.digital.style7{font-family:'Lucida Console',monospace;color:#06b6d4;text-shadow:0 0 7px #06b6d4;}
+.digital.style8{font-family:'Georgia',serif;color:#f472b6;font-weight:700;text-shadow:0 0 5px #f472b6;}
+.digital.style9{font-family:'Palatino',serif;color:#a3e635;font-size:70px;text-shadow:0 0 5px #a3e635;}
+.digital.style10{font-family:'Comic Sans MS',cursive;color:#eab308;font-size:60px;text-shadow:0 0 6px #eab308;}
+
+/* ===== 10 аналоговых стилей ===== */
+.analog.analog1{border-color:#38bdf8;background:#020617;}
+.analog.analog2{border-color:#f43f5e;background:#111;}
+.analog.analog3{border-color:#10b981;background:#001100;}
+.analog.analog4{border-color:#facc15;background:#222200;}
+.analog.analog5{border-color:#8b5cf6;background:#110022;}
+.analog.analog6{border-color:#f97316;background:#331100;}
+.analog.analog7{border-color:#06b6d4;background:#001133;}
+.analog.analog8{border-color:#f472b6;background:#330033;}
+.analog.analog9{border-color:#a3e635;background:#112200;}
+.analog.analog10{border-color:#eab308;background:#332211;}
+</style>
+</head>
+<body>
+
+<button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+
+<div class="clock-box">
+  <div id="digital" class="digital style1">00:00:00</div>
+  <div class="date" id="date">—</div>
+  <div class="analog analog1" id="analog" style="display:none">
+    <div class="hand hour" id="h"></div>
+    <div class="hand min" id="m"></div>
+    <div class="hand sec" id="s"></div>
+  </div>
+</div>
+
+<div class="settings" id="settings">
+  <button class="close-btn" onclick="toggleSettings()">Скрыть панель</button>
+  <h2>Настройки</h2>
+
+  <label>Цвет фона</label>
+  <input type="color" onchange="setBg(this.value)">
+  <label>Цвет часов</label>
+  <input type="color" onchange="setClockColor(this.value)">
+  <label>Частота пульсации</label>
+  <input type="range" min="0.5" max="5" step="0.1" value="2" oninput="setGlow(this.value)">
+  <label>Часовой пояс</label>
+  <select onchange="setTimezone(this.value)">
+    <option value="UTC">UTC</option>
+    <option value="Europe/Moscow">Россия</option>
+    <option value="Asia/Tashkent">Узбекистан</option>
+    <option value="Asia/Tokyo">Япония</option>
+    <option value="Asia/Shanghai">Китай</option>
+    <option value="Asia/Dubai">ОАЭ</option>
+    <option value="Europe/London">Великобритания</option>
+    <option value="Europe/Berlin">Германия</option>
+    <option value="Europe/Paris">Франция</option>
+    <option value="America/New_York">США (NY)</option>
+    <option value="America/Los_Angeles">США (LA)</option>
+    <option value="America/Sao_Paulo">Бразилия</option>
+    <option value="Asia/Seoul">Корея</option>
+    <option value="Asia/Kolkata">Индия</option>
+    <option value="Australia/Sydney">Австралия</option>
+    <option value="Africa/Cairo">Египет</option>
+    <option value="Africa/Johannesburg">ЮАР</option>
+    <option value="Europe/Rome">Италия</option>
+    <option value="Europe/Madrid">Испания</option>
+    <option value="Asia/Singapore">Сингапур</option>
+  </select>
+
+  <label>Стиль часов</label>
+  <select id="styleSelect" onchange="setStyle(this.value)">
+    <option value="digital1">Цифровой 1</option>
+    <option value="digital2">Цифровой 2</option>
+    <option value="digital3">Цифровой 3</option>
+    <option value="digital4">Цифровой 4</option>
+    <option value="digital5">Цифровой 5</option>
+    <option value="digital6">Цифровой 6</option>
+    <option value="digital7">Цифровой 7</option>
+    <option value="digital8">Цифровой 8</option>
+    <option value="digital9">Цифровой 9</option>
+    <option value="digital10">Цифровой 10</option>
+    <option value="analog1">Аналоговый 1</option>
+    <option value="analog2">Аналоговый 2</option>
+    <option value="analog3">Аналоговый 3</option>
+    <option value="analog4">Аналоговый 4</option>
+    <option value="analog5">Аналоговый 5</option>
+    <option value="analog6">Аналоговый 6</option>
+    <option value="analog7">Аналоговый 7</option>
+    <option value="analog8">Аналоговый 8</option>
+    <option value="analog9">Аналоговый 9</option>
+    <option value="analog10">Аналоговый 10</option>
+  </select>
+
+  <label>Режим экрана</label>
+  <button onclick="toggleFullscreen()">На весь экран</button>
+
+  <div class="telegram">
+    <a href="https://t.me/TLTSDWit" target="_blank">📢 Telegram: TLTSDWit</a>
+  </div>
+</div>
+
+<script>
+let timezone = "UTC";
+
+function toggleSettings() {
+  document.getElementById("settings").classList.toggle("open");
+}
+
+function setBg(color) {
+  document.documentElement.style.setProperty("--bg", color);
+}
+
+function setClockColor(color) {
+  document.documentElement.style.setProperty("--clock", color);
+}
+
+function setGlow(speed) {
+  document.documentElement.style.setProperty("--glow", speed + "s");
+}
+
+function setTimezone(tz) {
+  timezone = tz;
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+function setStyle(style) {
+  const d = document.getElementById("digital");
+  const a = document.getElementById("analog");
+  
+  // Очистить все классы стилей
+  for (let i = 1; i <= 10; i++) {
+    d.classList.remove("style" + i);
+    a.classList.remove("analog" + i);
+  }
+  
+  if (style.startsWith("digital")) {
+    d.style.display = "block";
+    a.style.display = "none";
+    let n = style.replace("digital", "");
+    d.classList.add("style" + n);
+  } else if (style.startsWith("analog")) {
+    d.style.display = "none";
+    a.style.display = "block";
+    let n = style.replace("analog", "");
+    a.classList.add("analog" + n);
+  }
+}
+
+function updateClock() {
+  const now = new Date();
+  const options = {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  };
+  const dateOptions = {
+    timeZone: timezone,
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  };
+  
+  const timeString = now.toLocaleTimeString("ru-RU", options);
+  document.getElementById("digital").textContent = timeString;
+  document.getElementById("date").textContent = now.toLocaleDateString("ru-RU", dateOptions);
+  
+  const h = document.getElementById("h");
+  const m = document.getElementById("m");
+  const s = document.getElementById("s");
+  
+  if (h && m && s) {
+    const timeData = timeString.split(':');
+    const hours = parseInt(timeData[0]) % 12;
+    const minutes = parseInt(timeData[1]);
+    const seconds = parseInt(timeData[2]);
+    
+    h.style.transform = `translateX(-50%) rotate(${hours * 30 + minutes * 0.5}deg)`;
+    m.style.transform = `translateX(-50%) rotate(${minutes * 6 + seconds * 0.1}deg)`;
+    s.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
+  }
+}
+
+// Инициализация
+updateClock();
+setInterval(updateClock, 1000);
+setStyle("digital1");
+</script>
+</body>
+</html>
